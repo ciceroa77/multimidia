@@ -43,6 +43,8 @@ export default function Home() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Adicionar estado para controlar auto-play
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(false);
 
   // Quando troca o vídeo
   useEffect(() => {
@@ -97,6 +99,15 @@ export default function Home() {
     const onCanPlay = () => {
       setIsVideoReady(true);
       setError(null);
+      // Se deve fazer auto-play, inicia o vídeo
+      if (shouldAutoPlay) {
+        setShouldAutoPlay(false);
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(() => {});
+          }
+        }, 100);
+      }
     };
 
     const onPlay = () => {
@@ -118,7 +129,12 @@ export default function Home() {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
-      setCurrentTime(duration);
+      // Auto-play próximo vídeo
+      const currentIndex = videoList.findIndex(v => v.file === currentVideo);
+      const nextIndex = (currentIndex + 1) % videoList.length;
+      const nextVideo = videoList[nextIndex];
+      setShouldAutoPlay(true);
+      setCurrentVideo(nextVideo.file);
     };
 
     const onError = () => {
